@@ -1,0 +1,17 @@
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation (
+            'com.google.code.gson:gson:2.8.5',
+//            'org.springframework.cloud:spring-cloud-dependencies:Finchley.RELEASE',
+//            'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:2.0.1.RELEASE',
+            'org.springframework.boot:spring-boot-starter-amqp:2.0.4.RELEASE',
+            'org.springframework.amqp:spring-rabbit:2.0.5.RELEASE'
+    )
+    testImplementation (
+            'junit:junit:4.+'
+    )
+}

@@ -1,0 +1,45 @@
+# GameController's yml.
+
+server:
+  port: 10080
+
+spring:
+  application:
+    name: game-controller
+  rabbitmq:
+    host: 172.93.35.237
+    port: 5672
+    username: magic
+    password: F1reflies
+  datasource:
+    driverClassName: com.mysql.jdbc.Driver
+    url: jdbc:mysql://172.93.35.237:3306/onw
+    username: onw
+    password: fireflies
+    driver-class-name: org.mariadb.jdbc.Driver
+    validationQuery: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://172.93.35.237:8761/eureka/
+
+mq:
+  exchange_name: onw-exchange
+  start_queue_name: onw-game-controller-start-queue
+  start_routing_key: onw.game.controller.start
+  front_end_listen_key_prefix: own.front.end
+  role_controller_binding_key: onw.current.role.controller.start.monitor
+  msg:
+    ttl: 60000
+game:
+  msg:
+    wakeup: wakeup
+    openeyes: openeyes
+    vote: vote
+    timeout: timeout
+    resolve: resolve

@@ -1,0 +1,32 @@
+/*
+Root Project: OneNightWerewolf
+ */
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.3.RELEASE")
+    }
+}
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'findbugs'
+    apply plugin: 'idea'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    apply from: rootDir.path + '/dependencies.gradle'
+}
+
+subprojects {
+    bootJar {
+        baseName = project.name
+        version =  rootProject.project_version
+    }
+}

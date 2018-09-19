@@ -1,0 +1,23 @@
+# EdgeAPI's yml.
+server:
+  port: 8088
+
+spring:
+  application:
+    name: edge-api
+  rabbitmq:
+    host: 172.93.35.237
+    port: 5672
+    username: magic
+    password: F1reflies
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://172.93.35.237:8761/eureka/
+
+mq:
+  exchange_name: onw-exchange
+  queue_name: seer-queue
+  routing_key: onw.role.seer
+  binding_key: own.seer.wake.up

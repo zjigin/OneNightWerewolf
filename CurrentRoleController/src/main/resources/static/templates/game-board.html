@@ -1,0 +1,94 @@
+
+<div class="row">
+
+    <div class="col-md-6">
+        <div class="gameon">
+            <div class="tableContainer">
+                <div class="gametable">
+                    <div ng-repeat="row in rows" class="tablerow">
+                        <div id="{{column.id}}" class="{{column.class}}" ng-repeat="column in row" >
+                            <div ng-click="markPlayerMove(column)" class="boxContent{{column.player}}"> </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div>
+            <table class="table table-hover table-striped table-condensed" ng-show="5">
+                <h2 class="lead">[{{playerUserName}}] Your initial role is: {{initialRole}}</h2>
+
+                <table style="width:100%">
+                    <tr>
+                        <th>System message:</th>
+                        <td>{{receiveMessage}}</td>
+                    </tr>
+                    <tr>
+                        <th>Your action response:</th>
+                        <td>{{playerActionResponse}}</td>
+                    </tr>
+                    <tr>
+                        <th>Your vote response:</th>
+                        <td>{{voteResponse}}</td>
+                    </tr>
+                    <tr>
+                        <th>Your final role:</th>
+                        <td>{{yourCurrentRole}}</td>
+                    </tr>
+                    <tr>
+                        <th>You</th>
+                        <td>{{isWinner}}</td>
+                    </tr>
+                </table>
+
+                <table style="width:100%">
+                    <tr>
+                        <th>gin:</th>
+                        <td><font color="cc66ff">123e4567-e89b-12d3-a456-426655440000</font></td>
+                    </tr>
+                    <tr>
+                        <th>dboy:</th>
+                        <td><font color="8585e0">123e4567-e89b-12d3-a456-426655440001</font></td>
+                    </tr>
+                    <tr>
+                        <th>renzhi:</th>
+                        <td><font color="85e0e0">123e4567-e89b-12d3-a456-426655440002</font></td>
+                    </tr>
+                    <tr>
+                        <th>wtf:</th>
+                        <td><font color="66b3ff">123e4567-e89b-12d3-a456-426655440003</font></td>
+                    </tr>
+                    <tr>
+                        <th>juicy:</th>
+                        <td><font color="ffb366">123e4567-e89b-12d3-a456-426655440004</font></td>
+                    </tr>
+                    <tr>
+                        <th>rex:</th>
+                        <td><font color="ccff66">123e4567-e89b-12d3-a456-426655440005</font></td>
+                    </tr>
+                    <tr>
+                        <th>fboy:</th>
+                        <td><font color="ff66b3">123e4567-e89b-12d3-a456-426655440006</font></td>
+                    </tr>
+                    <tr>
+                        <th>sola:</th>
+                        <td><font color="c2c2a3">123e4567-e89b-12d3-a456-426655440007</font></td>
+                    </tr>
+                </table>
+
+                <table style="width:100%">
+                    <tr>
+                        <th>Final result:</th>
+                    </tr>
+                    <tr>
+                        <td>{{finalResult}}</td>
+                    </tr>
+                </table>
+
+        </div>
+
+    </div>
+
+</div>
