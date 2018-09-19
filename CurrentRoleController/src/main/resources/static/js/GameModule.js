@@ -116,8 +116,8 @@ gameModule.controller('playerGamesController', ['$scope', '$http', '$location', 
     }]);
 
 
-gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope', '$http',
-    function (rootScope, routeParams, scope, http) {
+gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope', '$http', '$interval',
+    function (rootScope, routeParams, scope, http, interval) {
 
         scope.rows = rows;
         scope.initialRole = "TBD";
@@ -133,6 +133,10 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
         scope.receiveMessage = "Please wait for the host to start a new game."
         scope.isWinner = "?";
         scope.yourCurrentRole = "?";
+        scope.discussTimeLeft = 0;
+        scope.stopTimer = null;
+
+        var lag = 3;
 
         if(playerToken != null) {
             var ws = new WebSocket('ws://172.93.35.237:15674/ws');
@@ -148,15 +152,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
 
                 var id = client.subscribe("/queue/test-" + playerToken, function(d) {
 
-                    if(d.body == "wakeup") {
-                        scope.actionTurn = true;
-                        scope.receiveMessage = d.body;
-                    } else if(d.body == "openeyes") {
-                        scope.receiveMessage = d.body;
-                    } else if(d.body == "vote") {
-                        scope.receiveMessage = d.body;
-                        scope.votePhase = true;
-                    } else if(d.body == "timeout") {
+                    if(d.body == "timeout") {
                         scope.receiveMessage = d.body;
                         if(scope.actionTurn) {
                             scope.playerActionResponse = d.body;
@@ -165,7 +161,9 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                     } else if(d.body.startsWith("Phase")) {
                         scope.receiveMessage = d.body;
                     } else if(d.body.startsWith("resolve")) {
-                        scope.voteResponse = "time out."
+                        if(scope.voteResponse!= "Please wait for the vote phase.") {
+                            scope.voteResponse = "time out."
+                        }
                         scope.receiveMessage = d.body;
                         scope.votePhase = false;
                         var formedData = {};
@@ -198,7 +196,40 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                     } else {
                         var jsonBody = JSON.parse(d.body);
 
-                        if(jsonBody["gameID"] != null) {
+                        if(jsonBody["wakeup"] != null) {
+                            interval.cancel(scope.stopTimer);
+                            scope.actionTurn = true;
+                            scope.receiveMessage = "wake up";
+                            scope.discussTimeLeft = jsonBody["wakeup"]/1000 - lag;
+                            scope.stopTimer = interval(function() {
+                                            scope.discussTimeLeft --;
+                                            if(scope.discussTimeLeft == 0) {
+                                                interval.cancel(scope.stopTimer);
+                                            }
+                                        }, 1000);
+                        } else if(jsonBody["openeyes"] != null) {
+                            interval.cancel(scope.stopTimer);
+                            scope.receiveMessage = "open eyes";
+                            scope.discussTimeLeft = jsonBody["openeyes"]/1000 - lag;
+                            scope.stopTimer = interval(function() {
+                                            scope.discussTimeLeft --;
+                                            if(scope.discussTimeLeft == 0) {
+                                                interval.cancel(scope.stopTimer);
+                                            }
+                                        }, 1000);
+
+                        } else if(jsonBody["vote"] != null) {
+                            interval.cancel(scope.stopTimer);
+                            scope.receiveMessage = "vote";
+                            scope.votePhase = true;
+                            scope.discussTimeLeft = jsonBody["vote"]/1000 - lag;
+                            scope.stopTimer = interval(function() {
+                                            scope.discussTimeLeft --;
+                                            if(scope.discussTimeLeft == 0) {
+                                                interval.cancel(scope.stopTimer);
+                                            }
+                                        }, 1000);
+                        } else if(jsonBody["gameID"] != null) {
                             scope.gameID = jsonBody["gameID"];
                             scope.receiveMessage = "Start a new Game.";
                             scope.initialRole = "TBD";
@@ -207,6 +238,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                             scope.voteResponse = "Please wait for the vote phase."
                             scope.isWinner = "?"
                             scope.yourCurrentRole = "?";
+                            scope.discussTimeLeft = 0;
                             initialRows();
                         } else if(jsonBody["role"] != null) {
                             scope.initialRole = jsonBody["role"];
@@ -223,6 +255,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
             }
 
             function onError(e) {
+              scope.receiveMessage = "Please try to re-login again.";
               console.log("STOMP ERROR", e);
             }
         } else {

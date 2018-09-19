@@ -17,7 +17,7 @@
 
     <div class="col-md-6">
         <div>
-            <table class="table table-hover table-striped table-condensed" ng-show="5">
+            <table class="table table-hover table-striped table-condensed" ng-show="10">
                 <h2 class="lead">[{{playerUserName}}] Your initial role is: {{initialRole}}</h2>
 
                 <table style="width:100%">
@@ -28,6 +28,12 @@
                     <tr>
                         <th>Your action response:</th>
                         <td>{{playerActionResponse}}</td>
+                    </tr>
+                    <tr>
+                        <th>Timer:</th>
+                        <td>
+                            {{discussTimeLeft}}
+                        </td>
                     </tr>
                     <tr>
                         <th>Your vote response:</th>

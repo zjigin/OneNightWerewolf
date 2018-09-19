@@ -117,7 +117,9 @@ public class GameController {
                     List<UUID> wakeUpPlayerTokens = reversedInitialStatus.get(role);
                     for (UUID playerToken : wakeUpPlayerTokens) {
                         System.out.println(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, playerToken) + ": " + wakeUpMsg);
-                        sender.send(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, playerToken), wakeUpMsg);
+                        Map<String, Long> wakeUpMap = new HashMap<>();
+                        wakeUpMap.put(wakeUpMsg, gameSetting.getPhaseTime());
+                        sender.send(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, playerToken), GameControllerUtil.convertToJSON(wakeUpMap));
                     }
                 }
             }
@@ -144,7 +146,9 @@ public class GameController {
         for(Map.Entry<UUID, String> entry : initialStatus.entrySet()) {
             // Send all players open eyes message.
             System.out.println(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, entry.getKey()));
-            sender.send(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, entry.getKey()), openEyesMsg);
+            Map<String, Long> openEyesMap = new HashMap<>();
+            openEyesMap.put(openEyesMsg, gameSetting.getDiscussTime());
+            sender.send(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, entry.getKey()), GameControllerUtil.convertToJSON(openEyesMap));
         }
 
         try {
@@ -157,7 +161,9 @@ public class GameController {
         for(Map.Entry<UUID, String> entry : initialStatus.entrySet()) {
             // Send all player's vote message.
             System.out.println(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, entry.getKey()));
-            sender.send(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, entry.getKey()), voteMsg);
+            Map<String, Long> voteMap = new HashMap<>();
+            voteMap.put(voteMsg, gameSetting.getPhaseTime());
+            sender.send(String.format("%s.%s.%s", frontEndListenKeyPrefix, roomID, entry.getKey()), GameControllerUtil.convertToJSON(voteMap));
         }
 
         try {
