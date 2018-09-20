@@ -20,8 +20,12 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class GameStartReceiver {
 
+    private final GameController gameController;
+
     @Autowired
-    GameController gameController;
+    public GameStartReceiver(GameController gameController) {
+        this.gameController = gameController;
+    }
 
     @SuppressWarnings("unused")
     void receiveMessage(byte[] bytes) {

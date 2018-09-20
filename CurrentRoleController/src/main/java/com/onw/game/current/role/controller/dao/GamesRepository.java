@@ -5,7 +5,6 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 import java.util.UUID;
 
-@SuppressWarnings("unused")
 public interface GamesRepository extends CrudRepository<Games, Integer> {
 
     List<Games> findByGameIDAndRoomIDAndPlayerIDAndPlayerInitialRoleAndPassTurnOrderByCreateDate(UUID gameID, UUID roomID, String playerID, String playerInitialRole, Boolean passTurn);

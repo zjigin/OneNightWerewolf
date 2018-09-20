@@ -1,6 +1,5 @@
 package com.onw.game.current.role.controller.controller;
 
-import com.onw.game.current.role.controller.core.CurrentRoleController;
 import com.onw.game.current.role.controller.dao.Games;
 import com.onw.game.current.role.controller.dao.GamesRepository;
 import com.onw.game.current.role.controller.shared.GameControllerUtil;
@@ -11,13 +10,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-public class InternallController {
+public class InternalController {
+
+    private final GamesRepository gamesRepository;
 
     @Autowired
-    CurrentRoleController currentRoleController;
-
-    @Autowired
-    private GamesRepository gamesRepository;
+    public InternalController(GamesRepository gamesRepository) {
+        this.gamesRepository = gamesRepository;
+    }
 
     @RequestMapping("/action/{role}")
     @PostMapping

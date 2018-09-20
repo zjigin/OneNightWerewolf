@@ -16,11 +16,9 @@ import java.util.*;
 @Service
 public class GameController {
 
-    @Autowired
-    private Sender sender;
+    private final Sender sender;
 
-    @Autowired
-    private RolesRepository rolesRepository;
+    private final RolesRepository rolesRepository;
 
     @Value("${mq.role_controller_binding_key}")
     private String roleControllerBindingKey;
@@ -44,6 +42,12 @@ public class GameController {
     private String resolve;
 
     private Map<Integer, List<String>> gamePhaseOrder;
+
+    @Autowired
+    public GameController(Sender sender, RolesRepository rolesRepository) {
+        this.sender = sender;
+        this.rolesRepository = rolesRepository;
+    }
 
     @PostConstruct
     public void init() {

@@ -18,8 +18,12 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class RoleMonitorStartReceiver {
 
+    private final CurrentRoleController currentRoleController;
+
     @Autowired
-    CurrentRoleController currentRoleController;
+    public RoleMonitorStartReceiver(CurrentRoleController currentRoleController) {
+        this.currentRoleController = currentRoleController;
+    }
 
     @SuppressWarnings("unused")
     void receiveMessage(byte[] bytes) {

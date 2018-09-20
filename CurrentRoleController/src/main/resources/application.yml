@@ -12,12 +12,11 @@ spring:
     username: magic
     password: F1reflies
   datasource:
-    driverClassName: com.mysql.jdbc.Driver
+#    driverClassName: com.mysql.jdbc.Driver
     url: jdbc:mysql://172.93.35.237:3306/onw
     username: onw
     password: fireflies
     driver-class-name: org.mariadb.jdbc.Driver
-    validationQuery: SELECT 1
   jpa:
     hibernate:
       ddl-auto: update

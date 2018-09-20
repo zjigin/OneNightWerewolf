@@ -8,14 +8,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class Sender {
 
-    @Autowired
-    RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${mq.exchange_name}")
     private String topicExchangeName;
 
+    private final MyMessagePostProcessor myMessagePostProcessor;
+
     @Autowired
-    MyMessagePostProcessor myMessagePostProcessor;
+    public Sender(RabbitTemplate rabbitTemplate, MyMessagePostProcessor myMessagePostProcessor) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.myMessagePostProcessor = myMessagePostProcessor;
+    }
 
     public void send(String key, String message) {
         rabbitTemplate.convertAndSend(topicExchangeName, key, message, myMessagePostProcessor);

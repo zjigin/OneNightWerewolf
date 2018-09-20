@@ -4,22 +4,24 @@ import com.onw.game.current.role.controller.mq.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-
 @RestController
 public class TestingTempController {
 
+    private final Sender sender;
+
     @Autowired
-    Sender sender;
+    public TestingTempController(Sender sender) {
+        this.sender = sender;
+    }
 
     @RequestMapping(value = "/startGame", method = { RequestMethod.GET})
-    String startGame(HttpServletRequest request) {
+    String startGame() {
         sender.send("onw.game.controller.start", "{}");
         return "{}";
     }
 
     @RequestMapping(value = "/startGame", method = { RequestMethod.POST})
-    String startGame(HttpServletRequest request, @RequestBody String input) {
+    String startGame(@RequestBody String input) {
         sender.send("onw.game.controller.start", input);
         return input;
     }

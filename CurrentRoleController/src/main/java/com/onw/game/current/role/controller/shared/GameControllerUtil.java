@@ -3,7 +3,6 @@ package com.onw.game.current.role.controller.shared;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-@SuppressWarnings("unused")
 public class GameControllerUtil {
 
     private static Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();

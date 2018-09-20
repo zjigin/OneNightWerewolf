@@ -51,10 +51,10 @@ var hardCodedPlayerMap = {
                             "rex":"123e4567-e89b-12d3-a456-426655440005",
                             "fboy":"123e4567-e89b-12d3-a456-426655440006",
                             "sola":"123e4567-e89b-12d3-a456-426655440007",
-                            "":"123e4567-e89b-12d3-a456-426655440008",
-                            "":"123e4567-e89b-12d3-a456-426655440009",
-                            "":"123e4567-e89b-12d3-a456-426655440010",
-                            "":"123e4567-e89b-12d3-a456-426655440011"
+                            "empty0":"123e4567-e89b-12d3-a456-426655440008",
+                            "empty1":"123e4567-e89b-12d3-a456-426655440009",
+                            "empty2":"123e4567-e89b-12d3-a456-426655440010",
+                            "empty3":"123e4567-e89b-12d3-a456-426655440011"
                          };
 
 var hardCodedReversedPlayerMap = {
@@ -100,16 +100,16 @@ gameModule.controller('newGameController', ['$rootScope', '$scope', '$http', '$l
 ]);
 
 
-gameModule.controller('gamesToJoinController', ['$scope', '$http', '$location',
-    function (scope, http, location) {
+gameModule.controller('gamesToJoinController', ['$scope',
+    function (scope) {
 
         scope.gamesToJoin = [];
 
     }]);
 
 
-gameModule.controller('playerGamesController', ['$scope', '$http', '$location', '$routeParams',
-    function (scope, http, location, routeParams) {
+gameModule.controller('playerGamesController', ['$scope',
+    function (scope) {
 
         scope.playerGames = [];
 
@@ -130,13 +130,20 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
         scope.playerUserName = username;
         scope.voteResponse = "Please wait for the vote phase.";
         scope.finalResult = "Please wait...";
-        scope.receiveMessage = "Please wait for the host to start a new game."
+        scope.receiveMessage = "Please wait for the host to start a new game.";
         scope.isWinner = "?";
         scope.yourCurrentRole = "?";
         scope.discussTimeLeft = 0;
         scope.stopTimer = null;
+        var blackColor = {
+            "color": "black"
+        };
+        var redColor = {
+            "color": "red"
+        };
+        scope.systemMessageStytle = blackColor;
 
-        var lag = 3;
+        var lag = 0;
 
         if(playerToken != null) {
             var ws = new WebSocket('ws://172.93.35.237:15674/ws');
@@ -149,10 +156,10 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
             client.connect("magic", "F1reflies", onConnect, onError, "vhost");
 
             function onConnect() {
-
-                var id = client.subscribe("/queue/test-" + playerToken, function(d) {
-
-                    if(d.body == "timeout") {
+                var formedData = {};
+                client.subscribe("/queue/test-" + playerToken, function(d) {
+                    scope.systemMessageStytle = blackColor;
+                    if(d.body === "timeout") {
                         scope.receiveMessage = d.body;
                         if(scope.actionTurn) {
                             scope.playerActionResponse = d.body;
@@ -160,13 +167,13 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                         }
                     } else if(d.body.startsWith("Phase")) {
                         scope.receiveMessage = d.body;
-                    } else if(d.body.startsWith("resolve")) {
-                        if(scope.voteResponse!= "Please wait for the vote phase.") {
-                            scope.voteResponse = "time out."
+                    } else if(d.body === "resolve") {
+                        if(scope.voteResponse === "Please wait for the vote phase.") {
+                            scope.voteResponse = "You missed vote phase.";
                         }
                         scope.receiveMessage = d.body;
                         scope.votePhase = false;
-                        var formedData = {};
+                        formedData = {};
                         formedData.gameID = scope.gameID;
                         formedData.roomID = roomID;
                         formedData.userToken = playerToken;
@@ -183,14 +190,14 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                             } else {
                                 scope.isWinner = "Loss";
                             }
-                            scope.receiveMessage = "Please wait for the host to start a new game."
+                            scope.receiveMessage = "Please wait for the host to start a new game.";
                             for (var i = 0; i < data.reveal.length; i++) {
                                 var playerInfo = data.reveal[i];
-                                if(playerToken == playerInfo.playerToken) {
+                                if(playerToken === playerInfo.playerToken) {
                                      scope.yourCurrentRole = playerInfo.currentRole;
                                 }
                             }
-                        }).error(function (data, status, headers, config) {
+                        }).error(function () {
                             console.log("error");
                         });
                     } else {
@@ -200,11 +207,13 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                             interval.cancel(scope.stopTimer);
                             scope.actionTurn = true;
                             scope.receiveMessage = "wake up";
+                            scope.systemMessageStytle = redColor;
                             scope.discussTimeLeft = jsonBody["wakeup"]/1000 - lag;
                             scope.stopTimer = interval(function() {
                                             scope.discussTimeLeft --;
-                                            if(scope.discussTimeLeft == 0) {
+                                            if(scope.discussTimeLeft <= 0) {
                                                 interval.cancel(scope.stopTimer);
+                                                scope.discussTimeLeft = 0;
                                             }
                                         }, 1000);
                         } else if(jsonBody["openeyes"] != null) {
@@ -213,8 +222,9 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                             scope.discussTimeLeft = jsonBody["openeyes"]/1000 - lag;
                             scope.stopTimer = interval(function() {
                                             scope.discussTimeLeft --;
-                                            if(scope.discussTimeLeft == 0) {
+                                            if(scope.discussTimeLeft <= 0) {
                                                 interval.cancel(scope.stopTimer);
+                                                scope.discussTimeLeft = 0;
                                             }
                                         }, 1000);
 
@@ -225,8 +235,9 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                             scope.discussTimeLeft = jsonBody["vote"]/1000 - lag;
                             scope.stopTimer = interval(function() {
                                             scope.discussTimeLeft --;
-                                            if(scope.discussTimeLeft == 0) {
+                                            if(scope.discussTimeLeft <= 0) {
                                                 interval.cancel(scope.stopTimer);
+                                                scope.discussTimeLeft = 0;
                                             }
                                         }, 1000);
                         } else if(jsonBody["gameID"] != null) {
@@ -235,8 +246,8 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                             scope.initialRole = "TBD";
                             scope.playerActionResponse = "Please wait for the action phase.";
                             scope.finalResult = "Please wait...";
-                            scope.voteResponse = "Please wait for the vote phase."
-                            scope.isWinner = "?"
+                            scope.voteResponse = "Please wait for the vote phase.";
+                            scope.isWinner = "?";
                             scope.yourCurrentRole = "?";
                             scope.discussTimeLeft = 0;
                             initialRows();
@@ -260,17 +271,6 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
             }
         } else {
             console.log(playerToken);
-        }
-
-        var gameStatus;
-        getInitialData()
-
-        function getInitialData() {
-
-        }
-
-        function getMoveHistory() {
-
         }
 
         function initialRows() {
@@ -303,30 +303,30 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
         }
 
         scope.markPlayerMove = function (column) {
-            if(column.playerToken == "3") {
+            if(column.playerToken === "3") {
                 return;
             }
 
             if(scope.actionTurn) {
                 switch(scope.initialRole) {
                     case "WEREWOLF":
-                        if(column.playerToken == "0" || column.playerToken == "1" || column.playerToken == "2" || column.playerToken == "3") {
-                            var formedData = {};
+                        if(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") {
+                            formedData = {};
                             formedData.gameID = scope.gameID;
                             formedData.roomID = roomID;
                             formedData.userToken = playerToken;
                             formedData.rawData = {};
                             formedData.rawData.index = Number(column.playerToken);
                             formedData.frontEndSendTime = Date.now;
-                            var params = JSON.stringify(formedData);
-                            http.post("/action/werewolf", params, {
+                            var werewolfParams = JSON.stringify(formedData);
+                            http.post("/action/werewolf", werewolfParams, {
                                 headers: {
                                     'Content-Type': 'application/json;charset=UTF-8'
                                 }
-                            }).success(function (data, status, headers, config) {
+                            }).success(function (data) {
                                 scope.playerActionResponse = data;
                                 scope.actionTurn = false;
-                            }).error(function (data, status, headers, config) {
+                            }).error(function () {
                                 console.log("error");
                             });
                         }
@@ -334,7 +334,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                     case "SEER":
                         if(scope.seerFormedData == null) {
                             scope.seerFormedData = {};
-                            if(column.playerToken == "0" || column.playerToken == "1" || column.playerToken == "2" || column.playerToken == "3") {
+                            if(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") {
                                 scope.seerFormedData.gameID = scope.gameID;
                                 scope.seerFormedData.roomID = roomID;
                                 scope.seerFormedData.userToken = playerToken;
@@ -342,21 +342,21 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                 scope.seerFormedData.rawData.index = [];
                                 scope.seerFormedData.rawData.index.push(Number(column.playerToken));
                             } else {
-                                if(playerToken != column.playerToken) {
+                                if(playerToken !== column.playerToken) {
                                     scope.seerFormedData.gameID = scope.gameID;
                                     scope.seerFormedData.roomID = roomID;
                                     scope.seerFormedData.userToken = playerToken;
                                     scope.seerFormedData.rawData = {};
                                     scope.seerFormedData.rawData.playerID = column.playerToken;
-                                    var params = JSON.stringify(scope.seerFormedData);
+                                    var seerPlayerParams = JSON.stringify(scope.seerFormedData);
                                     scope.actionTurn = false;
-                                    http.post("/action/seer", params, {
+                                    http.post("/action/seer", seerPlayerParams, {
                                         headers: {
                                             'Content-Type': 'application/json;charset=UTF-8'
                                         }
-                                    }).success(function (data, status, headers, config) {
+                                    }).success(function (data) {
                                         scope.playerActionResponse = data;
-                                    }).error(function (data, status, headers, config) {
+                                    }).error(function () {
                                         console.log("error");
                                     });
 
@@ -364,19 +364,19 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                 }
                             }
                         } else {
-                            if(column.playerToken == "0" || column.playerToken == "1" || column.playerToken == "2" || column.playerToken == "3") {
-                                if(scope.seerFormedData.rawData.index[0] != column.playerToken) {
+                            if(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") {
+                                if(scope.seerFormedData.rawData.index[0] !== column.playerToken) {
                                     scope.seerFormedData.rawData.index.push(Number(column.playerToken));
                                     scope.seerFormedData.frontEndSendTime = Date.now;
-                                    var params = JSON.stringify(scope.seerFormedData);
+                                    var seerMiddleCardsParams = JSON.stringify(scope.seerFormedData);
                                     scope.actionTurn = false;
-                                    http.post("/action/seer", params, {
+                                    http.post("/action/seer", seerMiddleCardsParams, {
                                         headers: {
                                             'Content-Type': 'application/json;charset=UTF-8'
                                         }
-                                    }).success(function (data, status, headers, config) {
+                                    }).success(function (data) {
                                         scope.playerActionResponse = data;
-                                    }).error(function (data, status, headers, config) {
+                                    }).error(function () {
                                         console.log("error");
                                     });
                                     scope.seerFormedData = null;
@@ -385,29 +385,29 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                         }
                         break;
                     case "ROBBER":
-                        if(!(column.playerToken == "0" || column.playerToken == "1" || column.playerToken == "2" || column.playerToken == "3") && column.playerToken != playerToken) {
-                            var formedData = {};
+                        if(!(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") && column.playerToken !== playerToken) {
+                            formedData = {};
                             formedData.gameID = scope.gameID;
                             formedData.roomID = roomID;
                             formedData.userToken = playerToken;
                             formedData.rawData = {};
                             formedData.rawData.robbed = column.playerToken;
                             formedData.frontEndSendTime = Date.now;
-                            var params = JSON.stringify(formedData);
-                            http.post("/action/robber", params, {
+                            var robberParams = JSON.stringify(formedData);
+                            http.post("/action/robber", robberParams, {
                                 headers: {
                                     'Content-Type': 'application/json;charset=UTF-8'
                                 }
-                            }).success(function (data, status, headers, config) {
+                            }).success(function (data) {
                                 scope.playerActionResponse = data;
                                 scope.actionTurn = false;
-                            }).error(function (data, status, headers, config) {
+                            }).error(function () {
                                 console.log("error");
                             });
                         }
                         break;
                     case "TROUBLEMAKER":
-                        if(!(column.playerToken == "0" || column.playerToken == "1" || column.playerToken == "2" || column.playerToken == "3") && column.playerToken != playerToken) {
+                        if(!(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") && column.playerToken !== playerToken) {
                             if(scope.troubleMakerFormedData == null) {
                                 scope.troubleMakerFormedData = {};
                                 scope.troubleMakerFormedData.gameID = scope.gameID;
@@ -417,18 +417,18 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                 scope.troubleMakerFormedData.rawData.players = [];
                                 scope.troubleMakerFormedData.rawData.players.push(column.playerToken);
                             } else {
-                                if(playerToken != column.playerToken) {
+                                if(playerToken !== column.playerToken) {
                                     scope.troubleMakerFormedData.rawData.players.push(column.playerToken);
                                     scope.troubleMakerFormedData.frontEndSendTime = Date.now;
-                                    var params = JSON.stringify(scope.troubleMakerFormedData);
+                                    var troubleMakerParams = JSON.stringify(scope.troubleMakerFormedData);
                                     scope.actionTurn = false;
-                                    http.post("/action/troublemaker", params, {
+                                    http.post("/action/troublemaker", troubleMakerParams, {
                                         headers: {
                                             'Content-Type': 'application/json;charset=UTF-8'
                                         }
-                                    }).success(function (data, status, headers, config) {
+                                    }).success(function (data) {
                                         scope.playerActionResponse = data;
-                                    }).error(function (data, status, headers, config) {
+                                    }).error(function () {
                                         console.log("error");
                                     });
                                     scope.troubleMakerFormedData = null;
@@ -437,23 +437,23 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                         }
                         break;
                     case "DRUNK":
-                    if(column.playerToken == "0" || column.playerToken == "1" || column.playerToken == "2" || column.playerToken == "3") {
-                        var formedData = {};
+                    if(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") {
+                        formedData = {};
                         formedData.gameID = scope.gameID;
                         formedData.roomID = roomID;
                         formedData.userToken = playerToken;
                         formedData.rawData = {};
                         formedData.rawData.swap = Number(column.playerToken);
                         formedData.frontEndSendTime = Date.now;
-                        var params = JSON.stringify(formedData);
-                        http.post("/action/drunk", params, {
+                        var drunkParams = JSON.stringify(formedData);
+                        http.post("/action/drunk", drunkParams, {
                             headers: {
                                 'Content-Type': 'application/json;charset=UTF-8'
                             }
-                        }).success(function (data, status, headers, config) {
+                        }).success(function (data) {
                             scope.playerActionResponse = data;
                             scope.actionTurn = false;
-                        }).error(function (data, status, headers, config) {
+                        }).error(function () {
                             console.log("error");
                         });
                     }
@@ -462,7 +462,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                         break;
                 }
             } else if(scope.votePhase) {
-                if(!(column.playerToken == "0" || column.playerToken == "1" || column.playerToken == "2" || column.playerToken == "3")) {
+                if(!(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3")) {
                     var formedData = {};
                     formedData.gameID = scope.gameID;
                     formedData.roomID = roomID;
@@ -475,10 +475,10 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                         headers: {
                             'Content-Type': 'application/json;charset=UTF-8'
                         }
-                    }).success(function (data, status, headers, config) {
+                    }).success(function (data) {
                         scope.voteResponse = data;
                         scope.votePhase = false;
-                    }).error(function (data, status, headers, config) {
+                    }).error(function () {
                         console.log("error");
                     });
                 }

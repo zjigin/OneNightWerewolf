@@ -19,14 +19,18 @@ import java.util.UUID;
 @Service
 public class CurrentRoleController {
 
-    @Autowired
-    private GamesRepository gamesRepository;
+    private final GamesRepository gamesRepository;
 
-    @Autowired
-    private Sender sender;
+    private final Sender sender;
 
     @Value("${mq.front_end_listen_key_prefix}")
     private String frontEndListenKeyPrefix;
+
+    @Autowired
+    public CurrentRoleController(GamesRepository gamesRepository, Sender sender) {
+        this.gamesRepository = gamesRepository;
+        this.sender = sender;
+    }
 
     @Async
     public void createGame(String message) {
