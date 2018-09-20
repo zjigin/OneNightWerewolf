@@ -73,7 +73,7 @@
     padding: 10px;
 }
 
-.boxContentzji {
+.boxContentgin {
     position: absolute;
     left: 1px;
     right: 1px;
@@ -83,7 +83,7 @@
     padding: 10px;
 }
 
-.boxContentzji:hover {
+.boxContentgin:hover {
     position: absolute;
     left: 1px;
     right: 1px;

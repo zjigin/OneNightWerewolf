@@ -43,7 +43,7 @@ var playerBoxes = [
                     ];
 
 var hardCodedPlayerMap = {
-                            "zji":"123e4567-e89b-12d3-a456-426655440000",
+                            "gin":"123e4567-e89b-12d3-a456-426655440000",
                             "dboy":"123e4567-e89b-12d3-a456-426655440001",
                             "renzhi":"123e4567-e89b-12d3-a456-426655440002",
                             "wtf":"123e4567-e89b-12d3-a456-426655440003",
@@ -58,7 +58,7 @@ var hardCodedPlayerMap = {
                          };
 
 var hardCodedReversedPlayerMap = {
-                            "123e4567-e89b-12d3-a456-426655440000":"zji",
+                            "123e4567-e89b-12d3-a456-426655440000":"gin",
                             "123e4567-e89b-12d3-a456-426655440001":"dboy",
                             "123e4567-e89b-12d3-a456-426655440002":"renzhi",
                             "123e4567-e89b-12d3-a456-426655440003":"wtf",
@@ -145,6 +145,17 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
 
         var lag = 0;
 
+        function dummyReplacePlayerTokenToName(input) {
+            var inputStr = JSON.stringify(input, null, 4);
+            for (var key in hardCodedReversedPlayerMap) {
+                if (hardCodedReversedPlayerMap.hasOwnProperty(key)) {
+                    var regex = new RegExp(key.toString(), 'g');
+                    inputStr = inputStr.replace(regex, hardCodedReversedPlayerMap[key].toString());
+                }
+            }
+            return inputStr;
+        }
+
         if(playerToken != null) {
             var ws = new WebSocket('ws://172.93.35.237:15674/ws');
             var client = Stomp.over(ws);
@@ -184,7 +195,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                 'Content-Type': 'application/json;charset=UTF-8'
                             }
                         }).success(function (data, status, headers, config) {
-                            scope.finalResult = data;
+                            scope.finalResult = dummyReplacePlayerTokenToName(data);
                             if(data.winners.indexOf(playerToken) > -1) {
                                 scope.isWinner = "Win";
                             } else {
@@ -326,7 +337,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                     'Content-Type': 'application/json;charset=UTF-8'
                                 }
                             }).success(function (data) {
-                                scope.playerActionResponse = data;
+                                scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
                                 scope.actionTurn = false;
                             }).error(function () {
                                 console.log("error");
@@ -357,7 +368,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                             'Content-Type': 'application/json;charset=UTF-8'
                                         }
                                     }).success(function (data) {
-                                        scope.playerActionResponse = data;
+                                        scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
                                     }).error(function () {
                                         console.log("error");
                                     });
@@ -377,7 +388,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                             'Content-Type': 'application/json;charset=UTF-8'
                                         }
                                     }).success(function (data) {
-                                        scope.playerActionResponse = data;
+                                        scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
                                     }).error(function () {
                                         console.log("error");
                                     });
@@ -401,7 +412,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                     'Content-Type': 'application/json;charset=UTF-8'
                                 }
                             }).success(function (data) {
-                                scope.playerActionResponse = data;
+                                scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
                                 scope.actionTurn = false;
                             }).error(function () {
                                 console.log("error");
@@ -429,7 +440,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                             'Content-Type': 'application/json;charset=UTF-8'
                                         }
                                     }).success(function (data) {
-                                        scope.playerActionResponse = data;
+                                        scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
                                     }).error(function () {
                                         console.log("error");
                                     });
@@ -453,7 +464,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                 'Content-Type': 'application/json;charset=UTF-8'
                             }
                         }).success(function (data) {
-                            scope.playerActionResponse = data;
+                            scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
                             scope.actionTurn = false;
                         }).error(function () {
                             console.log("error");
@@ -478,7 +489,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                             'Content-Type': 'application/json;charset=UTF-8'
                         }
                     }).success(function (data) {
-                        scope.voteResponse = data;
+                        scope.voteResponse = dummyReplacePlayerTokenToName(data);
                         scope.votePhase = false;
                     }).error(function () {
                         console.log("error");
