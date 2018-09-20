@@ -136,8 +136,6 @@ public class InternalController {
 
                 // TODO: remove the player who voted by body guard from the list.
 
-
-
                 if(suspiciousPlayers.size() > 0) {
                     break;
                 }
@@ -148,6 +146,7 @@ public class InternalController {
                 for(Games hunter : rolePlayerTokenMap.get("HUNTER")) {
                     if(suspiciousPlayers.contains(hunter.getPlayerID())) {
                         suspiciousPlayers.add(hunter.getVoteTo());
+                        System.out.println("Add hunter's vote: " + hunter.getVoteTo());
                     }
                 }
             }
@@ -184,7 +183,9 @@ public class InternalController {
                 List<Games> tanners = rolePlayerTokenMap.get("TANNER");
                 for (Games tanner : tanners) {
                     if (suspiciousPlayers.contains(tanner.getPlayerID())) {
-                        winners.add(tanner.getPlayerID());
+                        if (tanner.getPlayerID().length() != 1) {
+                            winners.add(tanner.getPlayerID());
+                        }
                     }
                 }
                 if (winners.size() != 0) {
@@ -218,7 +219,9 @@ public class InternalController {
                         for(Map.Entry<String, List<Games>> entry : rolePlayerTokenMap.entrySet()) {
                             if(entry.getKey().equals("WEREWOLF")) {
                                 for(Games winner : entry.getValue()) {
-                                    winners.add(winner.getPlayerID());
+                                    if(winner.getPlayerID().length() != 1) {
+                                        winners.add(winner.getPlayerID());
+                                    }
                                 }
                             }
                         }
