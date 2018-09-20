@@ -217,6 +217,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                             }
                                         }, 1000);
                         } else if(jsonBody["openeyes"] != null) {
+                            scope.systemMessageStytle = redColor;
                             interval.cancel(scope.stopTimer);
                             scope.receiveMessage = "open eyes";
                             scope.discussTimeLeft = jsonBody["openeyes"]/1000 - lag;
@@ -229,6 +230,7 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                         }, 1000);
 
                         } else if(jsonBody["vote"] != null) {
+                            scope.systemMessageStytle = redColor;
                             interval.cancel(scope.stopTimer);
                             scope.receiveMessage = "vote";
                             scope.votePhase = true;
