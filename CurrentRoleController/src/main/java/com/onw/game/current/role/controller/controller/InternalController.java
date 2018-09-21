@@ -46,6 +46,12 @@ public class InternalController {
                     return drunkAction(selectedRow, incomingDTO);
                 case "MASON":
                     return masonAction(selectedRow);
+                case "MYSTICWOLF":
+                    return mysticWolfAction(selectedRow, incomingDTO);
+                case "IDIOT":
+                    return idiotAction(selectedRow, incomingDTO);
+                case "WITCH":
+                    return witchAction(selectedRow, incomingDTO);
                 default:
                     return "{}";
             }
@@ -148,7 +154,6 @@ public class InternalController {
                 for(Games hunter : rolePlayerTokenMap.get("HUNTER")) {
                     if(suspiciousPlayers.contains(hunter.getPlayerID())) {
                         suspiciousPlayers.add(hunter.getVoteTo());
-                        System.out.println("Add hunter's vote: " + hunter.getVoteTo());
                     }
                 }
             }
@@ -159,12 +164,10 @@ public class InternalController {
             returnMessage.put("reveal", revealFinalRoles);
             if(suspiciousPlayers.size() == 0) {
                 // if there is at least one werewolf, then werewolf team wins.
-                if(rolePlayerTokenMap.containsKey("WEREWOLF")) {
-                        for (Games winner : rolePlayerTokenMap.get("WEREWOLF")) {
-                            if (winner.getPlayerID().length() != 1) {
-                                winners.add(winner.getPlayerID());
-                            }
-                        }
+                if(rolePlayerTokenMap.containsKey("WEREWOLF") || rolePlayerTokenMap.containsKey("MYSTICWOLF")) {
+                    for (Games winner : findAllCurrentWerewolves(rolePlayerTokenMap)) {
+                        winners.add(winner.getPlayerID());
+                    }
                     returnMessage.put("winnerGroup", "WEREWOLF");
                 } else {
                     for(Map.Entry<String, List<Games>> entry : rolePlayerTokenMap.entrySet()) {
@@ -240,24 +243,19 @@ public class InternalController {
 
     private String wereWolfAction(Games games, IncomingDTO incomingDTO) {
         try {
-            List<Games> werewolves = gamesRepository.findByGameIDAndRoomIDAndPlayerInitialRole(games.getGameID(), games.getRoomID(), games.getPlayerInitialRole());
-            if (werewolves.size() == 2) {
+            List<Games> werewolves = findAllInitialWerewolvesFromDB(games);
+            if (werewolves.size() > 1) {
                 List<String> playerList = new ArrayList<>();
                 for (Games werewolf : werewolves) {
                     playerList.add(werewolf.getPlayerID());
-                    if(werewolf.getPlayerID().length() == 1) {
-                        Map<String, String> frontEndInfo = new HashMap<>();
-                        frontEndInfo.put("pickedCard", viewMiddleCard(games.getGameID(), games.getRoomID(), (Integer) incomingDTO.getRawData().get("index")));
-                        return GameControllerUtil.convertToJSON(frontEndInfo);
-                    }
                 }
                 Map<String, List<String>> frontEndInfo = new HashMap<>();
                 frontEndInfo.put("werewolves", playerList);
                 return GameControllerUtil.convertToJSON(frontEndInfo);
             } else {
-                // TODO: game logic error.
-                System.out.println("Error, shouldn't be here.");
-                return "{}";
+                Map<String, String> frontEndInfo = new HashMap<>();
+                frontEndInfo.put("pickedMiddleCard", viewMiddleCard(games.getGameID(), games.getRoomID(), (Integer) incomingDTO.getRawData().get("index")));
+                return GameControllerUtil.convertToJSON(frontEndInfo);
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -326,7 +324,7 @@ public class InternalController {
             List<String> playerIDs = (List<String>) actionMap.get("players");
             if(playerIDs.size() == 2) {
                 if(playerIDs.contains(games.getPlayerID())) {
-                   return "{}";
+                    return "{}";
                 } else {
                     Games firstPlayer = gamesRepository.findByGameIDAndRoomIDAndPlayerID(games.getGameID(), games.getRoomID(), playerIDs.get(0)).get(0);
                     Games secondPlayer = gamesRepository.findByGameIDAndRoomIDAndPlayerID(games.getGameID(), games.getRoomID(), playerIDs.get(1)).get(0);
@@ -385,6 +383,113 @@ public class InternalController {
         }
     }
 
+    private String mysticWolfAction(Games games, IncomingDTO incomingDTO) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Map<String, Object> actionMap = incomingDTO.getRawData();
+            if(actionMap.containsKey("playerID")) {
+                if (!actionMap.get("playerID").toString().equals(games.getPlayerID())) {
+                    result.put(actionMap.get("playerID").toString(), viewPlayerCard(games.getGameID(), games.getRoomID(), actionMap.get("playerID").toString()));
+                }
+            }
+            if(actionMap.containsKey("index")) {
+                List<Games> werewolves = findAllInitialWerewolvesFromDB(games);
+                if (werewolves.size() > 1) {
+                    result.put("werewolves", werewolves);
+                } else {
+                    try {
+                        result.put("pickedCard", viewMiddleCard(games.getGameID(), games.getRoomID(), (Integer) incomingDTO.getRawData().get("index")));
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return  GameControllerUtil.convertToJSON(result);
+    }
+
+    private String idiotAction(Games games, IncomingDTO incomingDTO) {
+        try {
+            Map<String, Object> actionMap = incomingDTO.getRawData();
+            Boolean turnLeft = (Boolean) actionMap.get("turnLeft");
+            List<Games> allPlayers = new ArrayList<>();
+            for (Games player : gamesRepository.findByGameIDAndRoomID(games.getGameID(), games.getRoomID())) {
+                if(player.getPlayerID().length() != 1) {
+                    allPlayers.add(player);
+                }
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            if(turnLeft) {
+                String roleZero = allPlayers.get(0).getPlayerCurrentRole();
+                for(int i=0;i<allPlayers.size()-1;i++) {
+                    allPlayers.get(i).setPlayerCurrentRole(allPlayers.get(i+1).getPlayerCurrentRole());
+                }
+                allPlayers.get(allPlayers.size() - 1).setPlayerCurrentRole(roleZero);
+                gamesRepository.saveAll(allPlayers);
+                result.put("turn", "left");
+            } else {
+                String roleZero = allPlayers.get(allPlayers.size() - 1).getPlayerCurrentRole();
+                for(int i=allPlayers.size() - 1;i==1;i--) {
+                    allPlayers.get(i).setPlayerCurrentRole(allPlayers.get(i-1).getPlayerCurrentRole());
+                }
+                allPlayers.get(0).setPlayerCurrentRole(roleZero);
+                gamesRepository.saveAll(allPlayers);
+                result.put("turn", "right");
+            }
+            return GameControllerUtil.convertToJSON(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{}";
+        }
+    }
+
+    private String witchAction(Games games, IncomingDTO incomingDTO) {
+        try {
+            if(games.getNote() == null) {
+                // Reveal a middle card.
+                Map<String, String> frontEndInfo = new HashMap<>();
+                Integer middleCardIndex = (Integer) incomingDTO.getRawData().get("index");
+                frontEndInfo.put("pickedMiddleCard", viewMiddleCard(games.getGameID(), games.getRoomID(), middleCardIndex));
+                games.setNote("Reveal " + middleCardIndex);
+                games.setPassTurn(false);
+                gamesRepository.save(games);
+                return GameControllerUtil.convertToJSON(frontEndInfo);
+            } else {
+                if(incomingDTO.getRawData().containsKey("playerID")) {
+                    String middleCardIndex = Arrays.asList(games.getNote().split(" ")).get(1);
+                    Games middleCard = gamesRepository.findByGameIDAndRoomIDAndPlayerID(games.getGameID(), games.getRoomID(), middleCardIndex).get(0);
+
+                    Map<String, String> middleCardRevealedInfo = new HashMap<>();
+                    middleCardRevealedInfo.put("index", middleCard.getPlayerID());
+                    middleCardRevealedInfo.put("role", middleCard.getPlayerCurrentRole());
+
+                    String pickedPlayerID = (String) incomingDTO.getRawData().get("playerID");
+                    Games pickedPlayer = gamesRepository.findByGameIDAndRoomIDAndPlayerID(games.getGameID(), games.getRoomID(), pickedPlayerID).get(0);
+                    String middleCardRole = middleCard.getPlayerCurrentRole();
+                    pickedPlayer.setPlayerCurrentRole(middleCardRole);
+                    middleCard.setPlayerCurrentRole(pickedPlayer.getPlayerCurrentRole());
+
+                    gamesRepository.save(middleCard);
+                    gamesRepository.save(pickedPlayer);
+
+                    games.setNote(games.getNote().concat(" and give to " + pickedPlayerID));
+                    gamesRepository.save(games);
+
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("give", middleCardRevealedInfo);
+                    result.put("to", pickedPlayerID);
+                    return GameControllerUtil.convertToJSON(result);
+                }
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return "{}";
+    }
+
     private String viewMiddleCard(UUID gameID, UUID roomID, Integer index) {
         List<Games> middleCard = gamesRepository.findByGameIDAndRoomIDAndPlayerID(gameID, roomID, String.format("%d", index));
 
@@ -407,4 +512,25 @@ public class InternalController {
         return "UNKNOWN";
     }
 
+    // TODO: add other types of wolves here.
+    private List<Games> findAllInitialWerewolvesFromDB(Games games) {
+        List<Games> werewolves = new ArrayList<>();
+        werewolves.addAll(gamesRepository.findByGameIDAndRoomIDAndPlayerInitialRole(games.getGameID(), games.getRoomID(), "WEREWOLF"));
+        werewolves.addAll(gamesRepository.findByGameIDAndRoomIDAndPlayerInitialRole(games.getGameID(), games.getRoomID(), "MYSTICWOLF"));
+        werewolves.removeIf(werewolf -> werewolf.getPlayerID().length() == 1);
+        return werewolves;
+    }
+
+    // TODO: add other types of wolves here.
+    private List<Games> findAllCurrentWerewolves(Map<String, List<Games>> rolePlayerTokenMap) {
+        List<Games> werewolves = new ArrayList<>();
+        if(rolePlayerTokenMap.containsKey("WEREWOLF")) {
+            werewolves.addAll(rolePlayerTokenMap.get("WEREWOLF"));
+        }
+        if(rolePlayerTokenMap.containsKey("MYSTICWOLF")) {
+            werewolves.addAll(rolePlayerTokenMap.get("MYSTICWOLF"));
+        }
+        werewolves.removeIf(werewolf -> werewolf.getPlayerID().length() == 1);
+        return werewolves;
+    }
 }

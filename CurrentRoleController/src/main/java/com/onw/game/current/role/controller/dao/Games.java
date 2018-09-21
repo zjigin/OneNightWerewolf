@@ -46,6 +46,9 @@ public class Games {
     @Column
     private Boolean passTurn;
 
+    @Column
+    private String note;
+
     public Integer getId() {
         return id;
     }
@@ -125,4 +128,13 @@ public class Games {
     public void setVoted(Boolean voted) {
         this.voted = voted;
     }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
 }

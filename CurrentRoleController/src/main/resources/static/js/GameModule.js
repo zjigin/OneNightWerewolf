@@ -135,6 +135,8 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
         scope.yourCurrentRole = "?";
         scope.discussTimeLeft = 0;
         scope.stopTimer = null;
+        scope.mysticwolfData = null;
+
         var blackColor = {
             "color": "black"
         };
@@ -478,6 +480,97 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                             formedData.frontEndSendTime = Date.now;
                             var drunkParams = JSON.stringify(formedData);
                             http.post("/action/drunk", drunkParams, {
+                                headers: {
+                                    'Content-Type': 'application/json;charset=UTF-8'
+                                }
+                            }).success(function (data) {
+                                scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
+                                scope.actionTurn = false;
+                            }).error(function () {
+                                console.log("error");
+                            });
+                        }
+                        break;
+                    case "MYSTICWOLF":
+                            if(scope.mysticwolfData == null) {
+                                if((column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3")) {
+                                    scope.mysticwolfData = {};
+                                    scope.mysticwolfData.gameID = scope.gameID;
+                                    scope.mysticwolfData.roomID = roomID;
+                                    scope.mysticwolfData.userToken = playerToken;
+                                    scope.mysticwolfData.rawData = {};
+                                    scope.mysticwolfData.rawData.index = Number(column.playerToken);
+                                }
+                            } else {
+                                if(!(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") && column.playerToken !== playerToken) {
+                                    scope.mysticwolfData.rawData.playerID = column.playerToken;
+                                    scope.mysticwolfData.frontEndSendTime = Date.now;
+                                    var mysticWerewolfParams = JSON.stringify(scope.mysticwolfData);
+                                    scope.actionTurn = false;
+                                    http.post("/action/mysticwolf", mysticWerewolfParams, {
+                                        headers: {
+                                            'Content-Type': 'application/json;charset=UTF-8'
+                                        }
+                                    }).success(function (data) {
+                                        scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
+                                    }).error(function () {
+                                        console.log("error");
+                                    });
+                                    scope.mysticwolfData = null;
+                                }
+                            }
+                        break;
+                    case "IDIOT":
+                        if(column.playerToken === "0" || column.playerToken === "1") {
+                            formedData = {};
+                            formedData.gameID = scope.gameID;
+                            formedData.roomID = roomID;
+                            formedData.userToken = playerToken;
+                            formedData.rawData = {};
+                            formedData.rawData.turnLeft = (Number(column.playerToken)%2===0);
+                            formedData.frontEndSendTime = Date.now;
+                            var idiotParam = JSON.stringify(formedData);
+                            http.post("/action/idiot", idiotParam, {
+                                headers: {
+                                    'Content-Type': 'application/json;charset=UTF-8'
+                                }
+                            }).success(function (data) {
+                                scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
+                                scope.actionTurn = false;
+                            }).error(function () {
+                                console.log("error");
+                            });
+                        }
+                        break;
+                    case "WITCH":
+                        if(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") {
+                            formedData = {};
+                            formedData.gameID = scope.gameID;
+                            formedData.roomID = roomID;
+                            formedData.userToken = playerToken;
+                            formedData.rawData = {};
+                            formedData.rawData.index = Number(column.playerToken);
+                            formedData.frontEndSendTime = Date.now;
+                            var idiotParam = JSON.stringify(formedData);
+                            http.post("/action/witch", idiotParam, {
+                                headers: {
+                                    'Content-Type': 'application/json;charset=UTF-8'
+                                }
+                            }).success(function (data) {
+                                scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
+                            }).error(function () {
+                                console.log("error");
+                            });
+                        } else {
+                            formedData = {};
+                            formedData.gameID = scope.gameID;
+                            formedData.roomID = roomID;
+                            formedData.userToken = playerToken;
+                            formedData.rawData = {};
+                            formedData.rawData.playerID = column.playerToken;
+                            formedData.frontEndSendTime = Date.now;
+                            var idiotParam = JSON.stringify(formedData);
+                            http.post("/action/witch", idiotParam, {
                                 headers: {
                                     'Content-Type': 'application/json;charset=UTF-8'
                                 }
