@@ -44,6 +44,8 @@ public class InternalController {
                     return troubleMakerAction(selectedRow, incomingDTO);
                 case "DRUNK":
                     return drunkAction(selectedRow, incomingDTO);
+                case "MASON":
+                    return masonAction(selectedRow);
                 default:
                     return "{}";
             }
@@ -361,6 +363,24 @@ public class InternalController {
             frontEndInfo.put("swap", middleCardIndex);
             return GameControllerUtil.convertToJSON(frontEndInfo);
         } catch (Exception e) {
+            return "{}";
+        }
+    }
+
+    private String masonAction(Games games) {
+        try {
+            List<Games> masons = gamesRepository.findByGameIDAndRoomIDAndPlayerInitialRole(games.getGameID(), games.getRoomID(), games.getPlayerInitialRole());
+            List<String> playerList = new ArrayList<>();
+            for (Games mason : masons) {
+                if(mason.getPlayerID().length() != 1) {
+                    playerList.add(mason.getPlayerID());
+                }
+            }
+            Map<String, List<String>> frontEndInfo = new HashMap<>();
+            frontEndInfo.put("masons", playerList);
+            return GameControllerUtil.convertToJSON(frontEndInfo);
+        } catch(Exception e) {
+            e.printStackTrace();
             return "{}";
         }
     }

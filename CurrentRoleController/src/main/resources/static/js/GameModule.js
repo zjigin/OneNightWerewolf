@@ -227,6 +227,24 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                                                 scope.discussTimeLeft = 0;
                                             }
                                         }, 1000);
+                            if(scope.initialRole === "MASON") {
+                                formedData = {};
+                                formedData.gameID = scope.gameID;
+                                formedData.roomID = roomID;
+                                formedData.userToken = playerToken;
+                                formedData.frontEndSendTime = Date.now;
+                                var masonParams = JSON.stringify(formedData);
+                                http.post("/action/mason", masonParams, {
+                                    headers: {
+                                        'Content-Type': 'application/json;charset=UTF-8'
+                                    }
+                                }).success(function (data) {
+                                    scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
+                                    scope.actionTurn = false;
+                                }).error(function () {
+                                    console.log("error");
+                                });
+                            }
                         } else if(jsonBody["openeyes"] != null) {
                             scope.systemMessageStytle = redColor;
                             interval.cancel(scope.stopTimer);
@@ -450,26 +468,26 @@ gameModule.controller('gameController', ['$rootScope', '$routeParams', '$scope',
                         }
                         break;
                     case "DRUNK":
-                    if(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") {
-                        formedData = {};
-                        formedData.gameID = scope.gameID;
-                        formedData.roomID = roomID;
-                        formedData.userToken = playerToken;
-                        formedData.rawData = {};
-                        formedData.rawData.swap = Number(column.playerToken);
-                        formedData.frontEndSendTime = Date.now;
-                        var drunkParams = JSON.stringify(formedData);
-                        http.post("/action/drunk", drunkParams, {
-                            headers: {
-                                'Content-Type': 'application/json;charset=UTF-8'
-                            }
-                        }).success(function (data) {
-                            scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
-                            scope.actionTurn = false;
-                        }).error(function () {
-                            console.log("error");
-                        });
-                    }
+                        if(column.playerToken === "0" || column.playerToken === "1" || column.playerToken === "2" || column.playerToken === "3") {
+                            formedData = {};
+                            formedData.gameID = scope.gameID;
+                            formedData.roomID = roomID;
+                            formedData.userToken = playerToken;
+                            formedData.rawData = {};
+                            formedData.rawData.swap = Number(column.playerToken);
+                            formedData.frontEndSendTime = Date.now;
+                            var drunkParams = JSON.stringify(formedData);
+                            http.post("/action/drunk", drunkParams, {
+                                headers: {
+                                    'Content-Type': 'application/json;charset=UTF-8'
+                                }
+                            }).success(function (data) {
+                                scope.playerActionResponse = dummyReplacePlayerTokenToName(data);
+                                scope.actionTurn = false;
+                            }).error(function () {
+                                console.log("error");
+                            });
+                        }
                         break;
                     default:
                         break;
