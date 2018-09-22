@@ -52,6 +52,8 @@ public class InternalController {
                     return idiotAction(selectedRow, incomingDTO);
                 case "WITCH":
                     return witchAction(selectedRow, incomingDTO);
+                case "FOLLOWER":
+                    return followerAction(selectedRow);
                 default:
                     return "{}";
             }
@@ -151,9 +153,11 @@ public class InternalController {
 
             // If hunter is in the list, add the player he voted into the list.
             if(suspiciousPlayers.size() > 0) {
-                for(Games hunter : rolePlayerTokenMap.get("HUNTER")) {
-                    if(suspiciousPlayers.contains(hunter.getPlayerID())) {
-                        suspiciousPlayers.add(hunter.getVoteTo());
+                if(rolePlayerTokenMap.containsKey("HUNTER")) {
+                    for (Games hunter : rolePlayerTokenMap.get("HUNTER")) {
+                        if (suspiciousPlayers.contains(hunter.getPlayerID())) {
+                            suspiciousPlayers.add(hunter.getVoteTo());
+                        }
                     }
                 }
             }
@@ -185,20 +189,23 @@ public class InternalController {
                 return GameControllerUtil.convertToJSON(returnMessage);
             } else {
                 // 1. Tanner.
-                List<Games> tanners = rolePlayerTokenMap.get("TANNER");
-                for (Games tanner : tanners) {
-                    if (suspiciousPlayers.contains(tanner.getPlayerID())) {
-                        if (tanner.getPlayerID().length() != 1) {
-                            winners.add(tanner.getPlayerID());
+                if(rolePlayerTokenMap.containsKey("TANNER")) {
+                    List<Games> tanners = rolePlayerTokenMap.get("TANNER");
+                    for (Games tanner : tanners) {
+                        if (suspiciousPlayers.contains(tanner.getPlayerID())) {
+                            if (tanner.getPlayerID().length() != 1) {
+                                winners.add(tanner.getPlayerID());
+                            }
                         }
                     }
                 }
+
                 if (winners.size() != 0) {
                     returnMessage.put("winnerGroup", "TANNERS");
                     returnMessage.put("winners", winners);
                     return GameControllerUtil.convertToJSON(returnMessage);
                 } else {
-                    List<Games> werewolves = rolePlayerTokenMap.get("WEREWOLF");
+                    List<Games> werewolves = findAllCurrentWerewolves(rolePlayerTokenMap);
                     boolean aWerewolfDead = false;
                     for(Games werewolf : werewolves) {
 
@@ -488,6 +495,10 @@ public class InternalController {
             e.printStackTrace();
         }
         return "{}";
+    }
+
+    private String followerAction(Games games) {
+        return "";
     }
 
     private String viewMiddleCard(UUID gameID, UUID roomID, Integer index) {
